@@ -97,3 +97,12 @@ const productsTaggedWithWork: Product[] = arrayOfProducts.filter((product) => pr
 const productNamesTaggedWithWork: string[] = productsTaggedWithWork.map((product) => product.name);
 console.log(productNamesPricedUnder1000);
 console.log(productNamesTaggedWithWork);
+
+
+type PasswordFieldType = number | string;
+
+const password = (code: PasswordFieldType) => {
+  console.log("password: " + code);
+};
+
+
