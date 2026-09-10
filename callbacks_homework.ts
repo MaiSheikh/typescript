@@ -42,4 +42,5 @@ const orderPizzaWithDelay = (callback: orderStatusFunction) => {
         callback(status);
     }, 3000);
 };
-orderPizzaWithDelay((status) => console.log(status));
+orderPizzaWithDelay((status) => console.log(status)); 
+
