@@ -15,71 +15,129 @@ Status codes we talked about:
 503 Service Unavailable   — the server is too busy right now
 */
 
+
+
 import express, { Request, Response } from "express";
 
 const app = express();
+
 const PORT = 3000;
-//Task 1 — Homepage Route
-// Task 6: Success = 200 OK, missing route = 404 Not Found
-app.get("/", (req: Request, res: Response): void => {
-  res.send("Welcome to my automation server");
-});
+
+app.use(express.json());
 
 
 
-//Task 2 – Main Data Route
-type Automation = {
-  title: string;
-  categories: {
-    plc: string[];
-    hmi: string[];
-    scada: string[];
-  };
-  lastUpdated: string;
+
+type Party = {
+  id: number;
+  name: string;
+  leader: string;
+  seats: number;
 };
-// Task 6: Success = 200 OK, missing route = 404 Not Found
-app.get("/automation", (req: Request, res: Response): void => {
-  const automation: Automation = {
-    title: "Automation and PLC",
-    categories: {
-      plc: ["Siemens S7-1500", "TIA Portal"],
-      hmi: ["WinCC", "HMI"],
-      scada: ["WinCC SCADA", "Factory IO"],
-    },
-    lastUpdated: new Date().toISOString().split("T")[0],
-  };
+type PartyParams = {
+  id: string;
+};
 
-  res.json(automation);
+let parties: Party[] = [
+  {
+    id: 1,
+    name: "{Socialdemokraterna}",
+    leader: " Name1",
+    seats: 107,
+  },
+  {
+    id: 2,
+    name: "{Vänsterpartiet}",
+    leader: "Name2",
+    seats: 68,
+  },
+];
+//Task 1 : GET /parties
+app.get("/parties", (req: Request, res: Response): void => {
+  res.json(parties);
 });
-
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
 });
 
-// Task 3 – Testing With Insomnia
- 
-//sk 4 – A Second JSON Route
-type About = {
-  title: string;
-  description: string;
-  founded: number;
-  funFact: string;
-};
-// Task 6: Success = 200 OK, missing route = 404 Not Found
-app.get("/about", (req: Request, res: Response): void => {
-  const about: About = {
-    title: "Automation",
-    description: "Automation uses technology to control machines and industrial processes.",
-    founded: 1968,
-    funFact: "The first PLC was developed to replace relay-based control systems.",
+// Task 2: POST /parties
+app.post("/parties", (req: Request, res: Response) => {
+// Task 6 : Handling Bad Input
+     const { name, leader, seats } = req.body;
+
+  if (!name || !leader) {
+    res.status(400).json({
+      message: "Name and leader are missing",
+    });
+    return;
+  }
+
+  const newParty: Party = {
+    id: parties.length + 1,
+    name: name,
+    leader: leader,
+    seats: seats,
   };
 
-  res.json(about);
+  parties.push(newParty);
+
+  res.status(201).json({
+    message: "Party added successfully",
+    party: newParty,
+  });
 });
 
-// Task 5 – Comparing Response Types
-// Task 6: Success = 200 OK, missing route = 404 Not Found
-app.get("/info", (req: Request, res: Response): void => {
-  // We use res.send because this route only returns a simple text message.
-  res.send("Automation is used to control machines and industrial processes.");
+// Task 4: PUT /parties/:id
+app.put(
+  "/parties/:id",
+  (req: Request<PartyParams>, res: Response): void => {
+   const partyId = parseInt(req.params.id);
+
+  const party = parties.find((party) => party.id === partyId);
+
+  if (!party) {
+    res.status(404).json({
+      message: "Party not found",
+    });
+    return;
+  }
+
+  if (req.body.name !== undefined) {
+    party.name = req.body.name;
+  }
+
+  if (req.body.leader !== undefined) {
+    party.leader = req.body.leader;
+  }
+
+  if (req.body.seats !== undefined) {
+    party.seats = req.body.seats;
+  }
+
+  res.json(party);
 });
+
+// Task 5: DELETE /parties/:id
+app.delete(
+  "/parties/:id",
+  (req: Request<PartyParams>, res: Response): void => {
+    const partyId = parseInt(req.params.id);
+
+    const partyIndex = parties.findIndex((party) => party.id === partyId);
+
+    if (partyIndex === -1) {
+      res.status(404).json({
+        message: "Party not found",
+      });
+      return;
+    }
+
+    parties.splice(partyIndex, 1);
+
+    res.json({
+      message: "Party deleted successfully",
+    });
+  }
+);
+
+// Task 6 : Handling Bad Input
